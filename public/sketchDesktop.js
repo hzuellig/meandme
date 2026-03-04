@@ -33,10 +33,11 @@ function draw() {
   // Use orthogonal projection to avoid perspective distortion (optional)
   pg.ortho(-200, 200, -200, 200, 0.1, 1000);
 
-
-  pg.camera(400, -400, 400,
+  pg.camera(320, -240, 420,
     0, 0, 0,     // Look at the origin
     0, 1, 0);    // Y-axis points upwards (keep the camera upright)
+
+  drawAxis(pg);
 
   pg.stroke(255);
   pg.noFill();
@@ -51,9 +52,9 @@ function draw() {
   orient.pitch = lerp(orient.pitch, targetPitch, 0.2);
   orient.roll = lerp(orient.roll, targetRoll, 0.2);
 
-  pg.rotateY(orient.roll);//alpha, gruene achse
-  pg.rotateX(orient.pitch);//beta, rote achse
-  pg.rotateZ(orient.yaw);//gamma, blaue achse
+  pg.rotateY(orient.yaw);
+  pg.rotateX(orient.pitch);
+  pg.rotateZ(-orient.roll);
 
   
   pg.box(100, 5, 200);
@@ -61,7 +62,6 @@ function draw() {
   pg.pop();
 
   image(pg, -width / 2, -height / 2);
-  drawAxis();
 
 }
 
@@ -72,7 +72,7 @@ function lerpAngle(current, target, amount) {
   return current + delta * amount;
 }
 
-function drawAxis() {
+function drawAxis(target) {
   /*
     p5 Axis
     ~~~
@@ -81,14 +81,19 @@ function drawAxis() {
     Z-axis: Positive Z points towards the viewer (out of the screen). blue
   */
   // X-axis (Red)
-  stroke(255, 0, 0);
-  line(0, 0, 0, 200, 0, 0);  // X axis points right
+  target.push();
+  target.strokeWeight(2);
+
+  target.stroke(255, 0, 0);
+  target.line(0, 0, 0, 200, 0, 0);  // X axis points right
 
   // Y-axis (Green)
-  stroke(0, 255, 0);
-  line(0, 0, 0, 0, -200, 0);  // Y axis points upwards
+  target.stroke(0, 255, 0);
+  target.line(0, 0, 0, 0, -200, 0);  // Y axis points upwards
 
   // Z-axis (Blue)
-  stroke(0, 0, 255);
-  line(0, 0, 0, 0, 0, 200);  // Z axis points towards the viewer
+  target.stroke(0, 0, 255);
+  target.line(0, 0, 0, 0, 0, 200);  // Z axis points towards the viewer
+
+  target.pop();
 }
