@@ -1,18 +1,17 @@
-# Mobile → Desktop Sensor Render Boilerplate
+# You & Me – Bidirectional Camera Exchange Boilerplate
 
-Small teaching/demo boilerplate to stream orientation sensor data from a mobile device to a desktop browser via WebSockets and render it in p5.js.
+Small teaching/demo boilerplate to capture and exchange live camera images between two devices (mobile and desktop) via WebSockets, rendered in p5.js.
 
 ## What it does
 
-- Captures `deviceorientation` data (`alpha`, `beta`, `gamma`) on mobile
-- Sends data from mobile client to the Node.js server using Socket.IO
-- Broadcasts data to other connected clients (desktop)
-- Renders the orientation on desktop in a simple 3D p5.js scene
+- Opens the camera on both devices
+- Captures frames periodically (≈7 fps) as JPEG using an offscreen canvas
+- Sends frames via Socket.IO to the server, which relays them to the other device
+- Each device displays its own camera feed full-screen and the remote camera feed as a small overlay, drawn entirely within p5.js using `loadImage`
 
 ## Test
-* Desktop (Receiver) `https://sensordatamobile2desktop.onrender.com/desktop`
-* Mobile (Sender) `https://sensordatamobile2desktop.onrender.com/mobile`
-
+* Desktop: `https://meandme.onrender.com/desktop`
+* Mobile: `https://meandme.onrender.com/mobile`
 
 ## Tech stack
 
@@ -50,43 +49,39 @@ Small teaching/demo boilerplate to stream orientation sensor data from a mobile 
 
 3. Open clients:
 
-- Desktop receiver: `http://localhost:3000/desktop`
-- Mobile sender: `http://localhost:3000/mobile`
+- Desktop: `http://localhost:3000/desktop`
+- Mobile: `http://localhost:3000/mobile`
 
 If you want to use a real phone, open the server from your phone on the same network (use your computer's local IP instead of `localhost`).
 
+## How the image transfer works
 
+1. **Sender** draws the camera video into a small offscreen `<canvas>` (320 px wide on desktop, 240 px on mobile)
+2. `canvas.toDataURL("image/jpeg", quality)` produces a Base64-encoded JPEG string
+3. The string is sent via `socket.emit("cameraFrame", { role, imageData, timestamp })`
+4. **Server** validates and relays it to all other connected clients via `socket.broadcast.emit`
+5. **Receiver** calls p5's `loadImage(dataUrl, callback)` to decode the JPEG into a p5 image object
+6. The decoded image is drawn with `image(remoteFrame, ...)` in the p5 draw loop
 
-## Sensor support behavior
-
-- **iOS Safari:** requires explicit permission (`DeviceOrientationEvent.requestPermission()`).
-- **Android / other mobile browsers:** if `deviceorientation` is available, data starts directly.
-- **Unsupported browsers/devices:** UI shows that sensor streaming is not supported.
-- **No live events:** UI times out and shows that no live sensor events were detected.
+Incoming frames are queued so that only the latest frame is decoded at any time, avoiding lag build-up.
 
 ## Important notes
 
-- Mobile sensor APIs usually require a secure context (`https`) or `localhost`.
-- On desktop browsers, orientation sensors are often unavailable (this is expected).
-- This boilerplate currently sends to all *other* clients (`socket.broadcast.emit`), not back to the sender itself.
+- Camera capture requires a secure context (`https`) or `localhost`.
+- Desktop uses the system default camera; mobile uses the device default camera (typically rear-facing).
 
 ## Troubleshooting
 
-- If desktop receives nothing:
+- If a device receives nothing:
 	- Check server log for `Client connected`
 	- Ensure both devices are connected to the same server URL
-	- Verify mobile browser permissions for motion/orientation sensors
-	- Try iOS Safari or Android Chrome on a physical phone
-
-- If mobile says "Waiting for sensor events...":
-	- Move/rotate the phone physically
-	- Check browser/site sensor permission settings
-	- Confirm you are in a supported browser
+	- Verify browser permissions for camera access
+	- Use Chrome on Android or Safari on iOS
 
 ## Teaching tip
 
 This repo is intentionally small so students can easily modify:
 
-- the sensor mapping in `public/sketchDesktop.js`
-- the outgoing payload in `public/sketchMobile.js`
+- the frame size and JPEG quality in `sendCameraFrameIfDue()` in each sketch
+- the overlay position and size in `drawRemoteFrameOverlay()`
 - the relay logic in `server.js`

@@ -1,7 +1,7 @@
 {
-  "name": "mobiledesktoprender",
+  "name": "meandme",
   "version": "1.0.0",
-  "description": "Boilerplate to send sensor data from Mobile to Desktop through socket.io",
+  "description": "Boilerplate to send camera data from Mobile to Desktop through socket.io",
   "license": "ISC",
   "author": "Hanna Zuellig",
   "type": "commonjs",

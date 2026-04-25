@@ -1,159 +1,130 @@
 let socket;
-let orientationListenerAttached = false;
-let sensorDataReceived = false;
-let sensorPlatformSupported = false;
-let needsExplicitPermission = false;
-let platformModeLabel = "Unknown";
+
 let sensorCheckTimedOut = false;
 let sensorCheckStarted = false;
+const CLIENT_ROLE = "mobile";
+let capture;
+let frameSendCanvas;
+let frameSendContext;
+let lastFrameSentAt = 0;
+const FRAME_INTERVAL_MS = 140;
+let remoteFrame = null;
+let queuedRemoteFrameData = null;
+let isDecodingRemoteFrame = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   socket = io();
-  setupMobile();
-}
+  setupCameraStream();
 
-function draw() {
-  background(30);
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(18);
-
-  text(`Mode: ${platformModeLabel}`, width / 2, height / 2 - 40);
-
-  if (!sensorPlatformSupported) {
-    text("Sensor streaming is not supported on this device/browser.", width / 2, height / 2);
-    return;
-  }
-
-  if (needsExplicitPermission && !permissionGranted) {
-    text("Please allow sensor access.", width / 2, height / 2);
-    return;
-  }
-
-  if (!sensorDataReceived) {
-    if (sensorCheckTimedOut) {
-      text("No live sensor events detected on this browser/device.", width / 2, height / 2);
+  socket.on("cameraFrame", (payload) => {
+    if (!payload || payload.role === CLIENT_ROLE || typeof payload.imageData !== "string") {
       return;
     }
 
-    text("Permission granted. Waiting for sensor events...", width / 2, height / 2);
-    return;
-  }
-
-  text("Sending sensor data...", width / 2, height / 2);
-
-}
-
-
-
-// GENERAL PURPOSE FUNCTIONS TO MANAGE MOBILE SENSOR PERMISSIONS
-
-
-let button;
-let permissionGranted = false;
-
-function setupMobile() {
-  if (typeof DeviceOrientationEvent === "undefined") {
-    sensorPlatformSupported = false;
-    permissionGranted = false;
-    platformModeLabel = "Unsupported";
-    return;
-  }
-
-  sensorPlatformSupported = true;
-
-  if (typeof DeviceOrientationEvent.requestPermission === "function") {
-    needsExplicitPermission = true;
-    platformModeLabel = "iOS (permission required)";
-    DeviceOrientationEvent.requestPermission()
-      .catch(() => {
-        button = createButton("ALLOW ACCESS TO SENSORS!");
-        button.style("font-size", "16px");
-        button.center();
-        button.mousePressed(requestAccess);
-      })
-      .then((response) => {
-        if (response === "granted") {
-          permissionGranted = true;
-          attachOrientationListener();
-        }
-      });
-  } else {
-    needsExplicitPermission = false;
-    permissionGranted = true;
-    platformModeLabel = "Android/Other (direct)";
-    attachOrientationListener();
-  }
-}
-
-function requestAccess() {
-  if (typeof DeviceOrientationEvent.requestPermission !== "function") {
-    return;
-  }
-
-  DeviceOrientationEvent.requestPermission()
-    .then((response) => {
-      if (response === "granted") {
-        permissionGranted = true;
-        attachOrientationListener();
-      } else {
-        permissionGranted = false;
-      }
-    })
-    .catch(console.error);
-  if (button) {
-    button.remove();
-  }
-}
-
-function attachOrientationListener() {
-  if (orientationListenerAttached || typeof DeviceOrientationEvent === "undefined") {
-    return;
-  }
-
-  startSensorAvailabilityCheck();
-
-  window.addEventListener("deviceorientation", (event) => {
-    let data = {
-      alpha: event.alpha,
-      beta: event.beta,
-      gamma: event.gamma
-    };
-    sensorDataReceived = true;
-    sensorCheckTimedOut = false;
-    console.log("sensor event:", data);
-    if (socket) {
-      /*
-event.alpha  // Rotation um Z-Achse, wenn das Gerät flach liegt und gedreht wird (0 bis 360)
-event.beta   // Rotation um X-Achse, kippen des Geräts vorwärts/rückwärts (-180 bis 180)
-event.gamma  // Rotation um Y-Achse, seitliches Kippen des Geräts, wie Nein sagen (-90 bis 90)
-      */
-      socket.emit("sensorData", data);
-    }
+    queueRemoteFrame(payload.imageData);
   });
 
-  orientationListenerAttached = true;
+
 }
 
-function startSensorAvailabilityCheck() {
-  if (sensorCheckStarted) {
+function draw() {
+  sendCameraFrameIfDue();
+
+  background(30);
+
+  image(capture, 0, 0, width, height);
+
+  drawRemoteFrameOverlay();
+
+  
+  
+
+}
+
+function drawRemoteFrameOverlay() {
+  if (!remoteFrame) {
     return;
   }
 
-  sensorCheckStarted = true;
-  sensorCheckTimedOut = false;
-
-  window.setTimeout(() => {
-    if (!sensorDataReceived) {
-      sensorCheckTimedOut = true;
-    }
-  }, 2000);
+  const previewWidth = 140;
+  const previewHeight = 105;
+  image(remoteFrame, 16, 16, previewWidth, previewHeight);
 }
 
-/*
-function noMobileSensorInput() {
-  let v = false;
-  if (!permissionGranted) v = true;
-  return v;
-}*/
+function queueRemoteFrame(imageData) {
+  queuedRemoteFrameData = imageData;
+  if (!isDecodingRemoteFrame) {
+    decodeLatestRemoteFrame();
+  }
+}
+
+function decodeLatestRemoteFrame() {
+  if (!queuedRemoteFrameData) {
+    isDecodingRemoteFrame = false;
+    return;
+  }
+
+  isDecodingRemoteFrame = true;
+  const nextData = queuedRemoteFrameData;
+  queuedRemoteFrameData = null;
+
+  loadImage(nextData, (img) => {
+    remoteFrame = img;
+    isDecodingRemoteFrame = false;
+
+    if (queuedRemoteFrameData) {
+      decodeLatestRemoteFrame();
+    }
+  }, () => {
+    isDecodingRemoteFrame = false;
+
+    if (queuedRemoteFrameData) {
+      decodeLatestRemoteFrame();
+    }
+  });
+}
+
+function setupCameraStream() {
+  capture = createCapture({ video: true, audio: false, facingMode: "environment" });
+  capture.size(640, 480);
+  capture.hide();
+
+  frameSendCanvas = document.createElement("canvas");
+  frameSendContext = frameSendCanvas.getContext("2d");
+}
+
+function sendCameraFrameIfDue() {
+  if (!socket || socket.connected !== true) {
+    return;
+  }
+
+  if (!capture || !capture.elt || capture.elt.videoWidth === 0) {
+    return;
+  }
+
+  if (millis() - lastFrameSentAt < FRAME_INTERVAL_MS) {
+    return;
+  }
+
+  const sourceVideo = capture.elt;
+  const targetWidth = 240;
+  const targetHeight = Math.round((sourceVideo.videoHeight / sourceVideo.videoWidth) * targetWidth);
+
+  frameSendCanvas.width = targetWidth;
+  frameSendCanvas.height = targetHeight;
+  frameSendContext.drawImage(sourceVideo, 0, 0, targetWidth, targetHeight);
+
+  const imageData = frameSendCanvas.toDataURL("image/jpeg", 0.5);
+  socket.emit("cameraFrame", {
+    role: CLIENT_ROLE,
+    imageData,
+    timestamp: Date.now()
+  });
+
+  lastFrameSentAt = millis();
+}
+
+
+
+

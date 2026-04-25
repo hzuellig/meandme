@@ -20,10 +20,23 @@ app.get("/desktop", (req, res) => {
 io.on("connection", (socket) => {
   console.log("Client connected");
 
-  socket.on("sensorData", (data) => {
+ /* socket.on("sensorData", (data) => {
     // Broadcast to all other clients
     //console.log(data);
     socket.broadcast.emit("sensorData", data);
+  });*/
+
+  socket.on("cameraFrame", (payload) => {
+    if (!payload || typeof payload.imageData !== "string") {
+      return;
+    }
+
+    // Relay camera frame to all other connected clients.
+    socket.broadcast.emit("cameraFrame", {
+      role: typeof payload.role === "string" ? payload.role : "unknown",
+      imageData: payload.imageData,
+      timestamp: payload.timestamp || Date.now()
+    });
   });
 
   socket.on("disconnect", () => {
