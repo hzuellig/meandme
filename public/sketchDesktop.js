@@ -11,6 +11,9 @@ let remoteFrame = null;
 let queuedRemoteFrameData = null;
 let isDecodingRemoteFrame = false;
 
+let otherImgWidth;
+let otherImgHeight;
+
 let yPos=0;
 
 function setup() {
@@ -36,6 +39,8 @@ function setup() {
     }
 
     queueRemoteFrame(payload.imageData);
+    otherImgWidth=payload.w;
+    otherImgHeight=payload.h;
   });
 }
 
@@ -55,10 +60,10 @@ function drawRemoteFrameOverlay() {
   }
 
  
-  const previewWidth = 320;
+  
   
   //draw the remote frame in the center below the local capture
-  image(remoteFrame, width / 2 - previewWidth / 2, yPos + capture.height );
+  image(remoteFrame, width / 2 - otherImgWidth / 2, yPos + capture.height, otherImgWidth, otherImgHeight );
   
 }
 
@@ -81,6 +86,7 @@ function decodeLatestRemoteFrame() {
 
   loadImage(nextData, (img) => {
     remoteFrame = img;
+
     isDecodingRemoteFrame = false;
 
     if (queuedRemoteFrameData) {
@@ -120,7 +126,9 @@ function sendCameraFrameIfDue() {
   socket.emit("cameraFrame", {
     role: CLIENT_ROLE,
     imageData,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    w:targetWidth,
+    h:targetHeight
   });
 
   lastFrameSentAt = millis();

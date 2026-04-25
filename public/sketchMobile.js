@@ -12,7 +12,10 @@ let remoteFrame = null;
 let queuedRemoteFrameData = null;
 let isDecodingRemoteFrame = false;
 
-let ratioScale =2;
+let ratioScale = 2;
+
+let otherImgWidth;
+let otherImgHeight;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -25,6 +28,8 @@ function setup() {
     }
 
     queueRemoteFrame(payload.imageData);
+    otherImgWidth=payload.w;
+    otherImgHeight=payload.h;
   });
 
 
@@ -49,9 +54,8 @@ function drawRemoteFrameOverlay() {
     return;
   }
 
-  const previewWidth = 140;
-  const previewHeight = 105;
-  image(remoteFrame, 16, 16, previewWidth, previewHeight);
+  
+  image(remoteFrame, width/2-otherImgWidth/2, 16, otherImgWidth, otherImgHeight);
 }
 
 function queueRemoteFrame(imageData) {
@@ -121,7 +125,9 @@ function sendCameraFrameIfDue() {
   socket.emit("cameraFrame", {
     role: CLIENT_ROLE,
     imageData,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    w:targetWidth,
+    h:targetHeight
   });
 
   lastFrameSentAt = millis();
