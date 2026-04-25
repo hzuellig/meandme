@@ -86,7 +86,7 @@ function drawRemoteFrameOverlay() {
     : remoteFrame.height;
 
   //draw the remote frame in the center below the local capture
-  image(remoteFrame, width / 2 - drawWidth / 2, yPos + capture.height, drawWidth, drawHeight);
+  image(remoteFrame, width / 2 - drawWidth / 2, 240, drawWidth, drawHeight);
   
 }
 
