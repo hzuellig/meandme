@@ -35,7 +35,10 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("cameraFrame", {
       role: typeof payload.role === "string" ? payload.role : "unknown",
       imageData: payload.imageData,
-      timestamp: payload.timestamp || Date.now()
+      timestamp: payload.timestamp || Date.now(),
+      w: Number.isFinite(payload.w) ? payload.w : null,
+      h: Number.isFinite(payload.h) ? payload.h : null,
+      sc: Number.isFinite(payload.sc) ? payload.sc : null
     });
   });
 

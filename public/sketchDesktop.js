@@ -42,8 +42,22 @@ function setup() {
     }
 
     queueRemoteFrame(payload.imageData);
-    otherImgWidth=payload.w * payload.sc;
-    otherImgHeight=payload.h * payload.sc;
+
+    const incomingW = Number(payload.w);
+    const incomingH = Number(payload.h);
+    const incomingScale = Number(payload.sc);
+
+    if (Number.isFinite(incomingW) && incomingW > 0) {
+      otherImgWidth = Number.isFinite(incomingScale) && incomingScale > 0
+        ? incomingW * incomingScale
+        : incomingW;
+    }
+
+    if (Number.isFinite(incomingH) && incomingH > 0) {
+      otherImgHeight = Number.isFinite(incomingScale) && incomingScale > 0
+        ? incomingH * incomingScale
+        : incomingH;
+    }
   });
 }
 
@@ -62,11 +76,15 @@ function drawRemoteFrameOverlay() {
     return;
   }
 
- 
-  
-  
+  const drawWidth = Number.isFinite(otherImgWidth) && otherImgWidth > 0
+    ? otherImgWidth
+    : remoteFrame.width;
+  const drawHeight = Number.isFinite(otherImgHeight) && otherImgHeight > 0
+    ? otherImgHeight
+    : remoteFrame.height;
+
   //draw the remote frame in the center below the local capture
-  image(remoteFrame, width / 2 - otherImgWidth / 2, yPos + capture.height, otherImgWidth, otherImgHeight );
+  image(remoteFrame, width / 2 - drawWidth / 2, yPos + capture.height, drawWidth, drawHeight);
   
 }
 

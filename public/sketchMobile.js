@@ -28,8 +28,17 @@ function setup() {
     }
 
     queueRemoteFrame(payload.imageData);
-    otherImgWidth=payload.w;
-    otherImgHeight=payload.h;
+
+    const incomingW = Number(payload.w);
+    const incomingH = Number(payload.h);
+
+    if (Number.isFinite(incomingW) && incomingW > 0) {
+      otherImgWidth = incomingW;
+    }
+
+    if (Number.isFinite(incomingH) && incomingH > 0) {
+      otherImgHeight = incomingH;
+    }
   });
 
 
@@ -54,8 +63,14 @@ function drawRemoteFrameOverlay() {
     return;
   }
 
-  
-  image(remoteFrame, width/2-otherImgWidth/2, 16, otherImgWidth, otherImgHeight);
+  const drawWidth = Number.isFinite(otherImgWidth) && otherImgWidth > 0
+    ? otherImgWidth
+    : remoteFrame.width;
+  const drawHeight = Number.isFinite(otherImgHeight) && otherImgHeight > 0
+    ? otherImgHeight
+    : remoteFrame.height;
+
+  image(remoteFrame, width / 2 - drawWidth / 2, 16, drawWidth, drawHeight);
 }
 
 function queueRemoteFrame(imageData) {
