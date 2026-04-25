@@ -58,6 +58,8 @@ function setup() {
         ? incomingH * incomingScale
         : incomingH;
     }
+
+    console.log(incomingW,incomingH);
   });
 }
 
