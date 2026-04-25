@@ -12,6 +12,8 @@ let remoteFrame = null;
 let queuedRemoteFrameData = null;
 let isDecodingRemoteFrame = false;
 
+let ratioScale =2;
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   socket = io();
@@ -87,7 +89,7 @@ function decodeLatestRemoteFrame() {
 
 function setupCameraStream() {
   capture = createCapture({ video: { facingMode: "environment" }, audio: false });
-  capture.size(640, 480);
+  capture.size(width/ratioScale, height/ratioScale);
   capture.hide();
 
   frameSendCanvas = document.createElement("canvas");

@@ -11,7 +11,7 @@ let remoteFrame = null;
 let queuedRemoteFrameData = null;
 let isDecodingRemoteFrame = false;
 
-let yPos=100;
+let yPos=0;
 
 function setup() {
   cvn=createCanvas(windowWidth, windowHeight);
@@ -55,10 +55,10 @@ function drawRemoteFrameOverlay() {
   }
 
  
-  const previewWidth = 640;
-  const previewHeight = 480;
+  const previewWidth = 320;
+  
   //draw the remote frame in the center below the local capture
-  image(remoteFrame, width / 2 - previewWidth / 2, yPos + capture.height , previewWidth, previewHeight);
+  image(remoteFrame, width / 2 - previewWidth / 2, yPos + capture.height );
   
 }
 
