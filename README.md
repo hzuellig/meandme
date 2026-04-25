@@ -10,8 +10,8 @@ Small teaching/demo boilerplate to capture and exchange live camera images betwe
 - Each device displays its own camera feed full-screen and the remote camera feed as a small overlay, drawn entirely within p5.js using `loadImage`
 
 ## Test
-* Desktop: `https://meandme.onrender.com/desktop`
-* Mobile: `https://meandme.onrender.com/mobile`
+* Desktop: `https://https://meandme-w6ix.onrender.com/desktop`
+* Mobile: `https://https://meandme-w6ix.onrender.com/mobile`
 
 ## Tech stack
 

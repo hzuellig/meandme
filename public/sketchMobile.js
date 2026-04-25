@@ -86,7 +86,7 @@ function decodeLatestRemoteFrame() {
 }
 
 function setupCameraStream() {
-  capture = createCapture({ video: true, audio: false, facingMode: "environment" });
+  capture = createCapture({ video: { facingMode: "environment" }, audio: false });
   capture.size(640, 480);
   capture.hide();
 

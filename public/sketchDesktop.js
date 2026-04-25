@@ -1,7 +1,7 @@
 let socket;
 let cvn;
 let capture;
-let ratio = 1;
+
 const CLIENT_ROLE = "desktop";
 let frameSendCanvas;
 let frameSendContext;
@@ -18,7 +18,7 @@ function setup() {
   capture.size(640, 480);
   capture.hide(); // Hide the default HTML element
 
-  ratio = windowWidth / 640;
+  //ratio = windowWidth / 640;
   frameSendCanvas = document.createElement("canvas");
   frameSendContext = frameSendCanvas.getContext("2d");
   //frameSendCanvas is not added to the DOM since we only use it for off-screen processing
@@ -38,7 +38,8 @@ function setup() {
 }
 
 function draw() {
-  image(capture, 0, 0, capture.width * ratio, capture.height * ratio);
+  //place the image in the center of the screen
+  image(capture, width/2 - capture.width /2, height/2 - capture.height /2);
 
   sendCameraFrameIfDue();
 
@@ -52,9 +53,10 @@ function drawRemoteFrameOverlay() {
   }
 
  
-  const previewWidth = 220;
-  const previewHeight = 165;
-  image(remoteFrame, 16, 16, previewWidth, previewHeight);
+  const previewWidth = 640;
+  const previewHeight = 480;
+  //draw the remote frame in the center below the local capture
+  image(remoteFrame, width/2 - previewWidth.width /2, height/2 + capture.height /2, previewWidth, previewHeight);
   
 }
 
