@@ -23,7 +23,7 @@ function setup() {
   cvn=createCanvas(windowWidth, windowHeight);
   
   capture = createCapture(VIDEO);
-  capture.size(640, 480);
+  capture.size(320, 240);
   capture.hide(); // Hide the default HTML element
 
   //ratio = windowWidth / 640;
@@ -59,7 +59,7 @@ function setup() {
         : incomingH;
     }
 
-    console.log(incomingW,incomingH);
+    //console.log(incomingW,incomingH);
   });
 }
 
