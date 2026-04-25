@@ -56,7 +56,7 @@ function drawRemoteFrameOverlay() {
   const previewWidth = 640;
   const previewHeight = 480;
   //draw the remote frame in the center below the local capture
-  image(remoteFrame, width/2 - previewWidth.width /2, height/2 + capture.height /2, previewWidth, previewHeight);
+  image(remoteFrame, width / 2 - previewWidth / 2, height / 2 + capture.height / 2, previewWidth, previewHeight);
   
 }
 
