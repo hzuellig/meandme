@@ -56,7 +56,7 @@ If you want to use a real phone, open the server from your phone on the same net
 
 ## How the image transfer works
 
-1. **Sender** draws the camera video into a small offscreen `<canvas>` (320 px wide on desktop, 240 px on mobile)
+1. **Sender** draws the camera video into a small offscreen `<canvas>` 
 2. `canvas.toDataURL("image/jpeg", quality)` produces a Base64-encoded JPEG string
 3. The string is sent via `socket.emit("cameraFrame", { role, imageData, timestamp })`
 4. **Server** validates and relays it to all other connected clients via `socket.broadcast.emit`
@@ -68,7 +68,7 @@ Incoming frames are queued so that only the latest frame is decoded at any time,
 ## Important notes
 
 - Camera capture requires a secure context (`https`) or `localhost`.
-- Desktop uses the system default camera; mobile uses the device default camera (typically rear-facing).
+- Desktop uses the system default camera; mobile uses the device environment camera.
 
 ## Troubleshooting
 
