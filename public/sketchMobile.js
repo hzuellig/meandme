@@ -114,7 +114,7 @@ function sendCameraFrameIfDue() {
   }
 
   const sourceVideo = capture.elt;
-  const targetWidth = 240;
+  const targetWidth = Math.round(width/ratioScale);
   const targetHeight = Math.round((sourceVideo.videoHeight / sourceVideo.videoWidth) * targetWidth);
 
   frameSendCanvas.width = targetWidth;
@@ -127,7 +127,8 @@ function sendCameraFrameIfDue() {
     imageData,
     timestamp: Date.now(),
     w:targetWidth,
-    h:targetHeight
+    h:targetHeight,
+    sc: ratioScale
   });
 
   lastFrameSentAt = millis();

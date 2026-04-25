@@ -14,6 +14,9 @@ let isDecodingRemoteFrame = false;
 let otherImgWidth;
 let otherImgHeight;
 
+let ratioScale =2;
+
+
 let yPos=0;
 
 function setup() {
@@ -39,8 +42,8 @@ function setup() {
     }
 
     queueRemoteFrame(payload.imageData);
-    otherImgWidth=payload.w;
-    otherImgHeight=payload.h;
+    otherImgWidth=payload.w * payload.sc;
+    otherImgHeight=payload.h * payload.sc;
   });
 }
 
@@ -115,7 +118,7 @@ function sendCameraFrameIfDue() {
   }
 
   const sourceVideo = capture.elt;
-  const targetWidth = 320;
+  const targetWidth = sourceVideo.videoWidth / ratioScale;
   const targetHeight = Math.round((sourceVideo.videoHeight / sourceVideo.videoWidth) * targetWidth);
 
   frameSendCanvas.width = targetWidth;
@@ -128,7 +131,8 @@ function sendCameraFrameIfDue() {
     imageData,
     timestamp: Date.now(),
     w:targetWidth,
-    h:targetHeight
+    h:targetHeight,
+    sc: ratioScale
   });
 
   lastFrameSentAt = millis();
